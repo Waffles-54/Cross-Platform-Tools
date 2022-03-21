@@ -20,8 +20,8 @@ doMonthlyUpdate = True
 doYearlyUpdates = True
 
 #External Directories
-syncFile = "D:\Backups\Program\syncFile.txt" #Enter the full directory of where the syncFile is here, The sync file is a file with a list of directories to syncronize before backing up
-backupLocation = "D:\Backups"  #Enter the full directory of where backups will be kept
+syncFile = "" #Enter the full directory of where the syncFile is here, The sync file is a file with a list of directories to syncronize before backing up
+backupLocation = ""  #Enter the full directory of where backups will be kept
 
 #Number of Backups allowed per type
 allowedWeeklyBackups = 4        #Determines max ammount of Weekly Backups
