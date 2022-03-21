@@ -14,7 +14,7 @@ import os, sys, subprocess
 #CONFIGURATION START
 ###################################################################################################################################################
 
-doDailySync = False
+doDailySync = True
 doWeeklyUpdates = True
 doMonthlyUpdate = True
 doYearlyUpdates = True
@@ -23,17 +23,15 @@ doYearlyUpdates = True
 syncFile = "D:\Backups\Program\syncFile.txt" #Enter the full directory of where the syncFile is here, The sync file is a file with a list of directories to syncronize before backing up
 backupLocation = "D:\Backups"  #Enter the full directory of where backups will be kept
 
-#Number of Backups allowed per type (NOT YET IMPLEMENTED) #TODO
-# allowedWeeklyBackups = 4        #Determines max ammount of Weekly Backups
-# allowedMonthlyBackups = 3       #Determines max ammount of Monthly Backups
-# allowedQuarterlyBackups = 4     #Determines max ammount of Quarterly Backups
-# allowedBiannualBackups = 2      #Determines max ammount of Biannual Backups
-# allowedYearlyBackups = 99       #Determines max ammount of Yearly Backups
+#Number of Backups allowed per type
+allowedWeeklyBackups = 4        #Determines max ammount of Weekly Backups
+allowedMonthlyBackups = 6       #Determines max ammount of Monthly Backups
+allowedYearlyBackups = 99       #Determines max ammount of Yearly Backups
 
 #When backups occur
 dateOfWeekly = 0                                    #Defaults as 0, Options: (0-6)
-dateOfMonthly = 28                                  #Defaults as 28th, last day of all months(28), Options (1-31)
-dateOfYearly = [12, 31]                              #(Month(1-12), Day(1-31))
+dateOfMonthly = 28                                  #Defaults as 28th, last day of all months(28), Options (1-28)
+dateOfYearly = [12, 28]                              #(Month(1-12), Day(1-28))
 
 ###################################################################################################################################################
 #CONFIGURATION END 
@@ -60,6 +58,7 @@ class prepSys:
     #----------------------------------------------------------
     def ConfCheck():
         terminationFlag = False
+        listID = 0
 
         #BOOL CHECKING PHASE
         if not type(doDailySync) == bool:
@@ -83,24 +82,40 @@ class prepSys:
             print("WARNING: Error detected in the configuration settings.\nsyncFile was unable to be opened, Please validate the path\n")
             terminationFlag = True
 
+        if not 0 <= dateOfWeekly <= 6:
+            print("WARNING: Error detected in the configuration settings.\ndateOfWeekly is not in a valid range, please set the variable between 0-6\n")
+            terminationFlag = True
+        if not 1 <= dateOfMonthly <= 28:
+            print("WARNING: Error detected in the configuration settings.\dateOfMonthly is not in a valid range, please set the variable between 1-28\n")
+            terminationFlag = True
+        for value in dateOfYearly:
+            if listID == 0 and not 1 <= value <= 12:
+                print("WARNING: Error detected in the configuration settings.\dateOfYearly (Value 1) is not in a valid range, please set the variable between 1-12\n")
+                terminationFlag = True
+            if listID == 1 and not 1 <= value <= 28:
+                print("WARNING: Error detected in the configuration settings.\dateOfYearly (Value 2) is not in a valid range, please set the variable between 1-28\n")
+                terminationFlag = True
+            if listID > 2:
+                print("WARNING: Error detected in the configuration settings.\dateOfYearly has too many values, please use the format [(Month(1-12), Day(1-28))]\n")
+                terminationFlag = True
+            listID += 1
+        listID = 0
         if terminationFlag: exit()
-
-        #DATECODE CHECKING
-        #TODO
 
     #----------------------------------------------------------
     #Function Purpouse: Parses arguments passed from CLI
     #----------------------------------------------------------
     def argParser():
-        for each in sys.argv:
-            if each == "-f":
+        for arg in sys.argv:
+            if arg == "-f":
                 backupSys.syncSys()
                 backupSys.bakGen("Forced", timeNow.strftime("%m-%d"), "F")
                 exit()
-            if each == "-s":
+            if arg == "-s":
                 backupSys.syncSys()
                 exit()
-                
+            if arg == "-m":
+                print("#TODO, manual page")
 
 #####################################################################
 #Class Purpouse: Program functionality
@@ -112,7 +127,7 @@ class backupSys:
     def syncSys():
         os.chdir(backupLocation)
         if not os.path.isdir("Sync"):
-            print("Generating a Sync folder at " + backupLocation)
+            print("Generating a Sync folder at " + backupLocation + "\n")
             os.mkdir("Sync")
         os.chdir("Sync")
         with open(syncFile) as sync:
@@ -126,6 +141,19 @@ class backupSys:
                     dirsync.sync(line.strip('\n'), currSync, 'sync')
     
     #----------------------------------------------------------
+    #Function Purpouse: Delete old backups after max hit
+    #----------------------------------------------------------
+    def bacTrimmer(backupType, countedBak):
+        deletionFlag = False
+        if backupType == "Weekly" and countedBak >= allowedWeeklyBackups:
+            deletionFlag = True
+        if backupType == "Monthly" and countedBak >= allowedMonthlyBackups:
+            deletionFlag = True
+        if backupType == "Yearly" and countedBak >= allowedYearlyBackups:
+            deletionFlag = True   
+        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); os.rmdir(dirSorter[0])
+
+    #----------------------------------------------------------
     #Function Purpouse: Dynamicly generate backups
     #----------------------------------------------------------
     def bakGen(backupType, dateCode, backupCode):
@@ -133,6 +161,8 @@ class backupSys:
         if not os.path.isdir(backupType):
             os.mkdir(backupType)
         os.chdir(backupType)
+        countedBak = len(next(os.walk(os.curdir))[1])
+        backupSys.bacTrimmer(backupType, countedBak)
         if not os.path.isdir(dateCode):
             os.mkdir(dateCode)
         os.chdir(dateCode)
@@ -168,13 +198,10 @@ timeNow = datetime.datetime.today()
 prepSys.argParser()
 if doDailySync:
     backupSys.syncSys()
-
-if doWeeklyUpdates:# and timeNow.weekday() == dateOfWeekly:
+if doWeeklyUpdates and timeNow.weekday() == dateOfWeekly:
     backupSys.bakGen("Weekly", timeNow.strftime("%m-%d"), "W")
-
 if doMonthlyUpdate and timeNow.day == dateOfMonthly:
     backupSys.bakGen("Monthly", timeNow.strftime("%Y-%m"), "M")
-
 if doYearlyUpdates and dateOfYearly == timeNow.strftime("%m-%d"):
     backupSys.bakGen("Yearly", timeNow.strftime("%m-%d"), "Y")
 
