@@ -1,6 +1,6 @@
 ###################################################################################################################################################
 #Written By Keegan A Clark, Western Washington University
-#Initial Commit: 2021.11.25, Last Edited: 2022.02.11
+#Initial Commit: 2021.11.25
 #This program is licensed under the GNU General Public License v3.0: https://www.gnu.org/licenses/gpl-3.0.en.html
 #This program is not under any form of warranty
 #Purpouse Statement:
@@ -15,26 +15,40 @@ import os, sys, subprocess
 ###################################################################################################################################################
 
 doDailySync = True
+doBackupFile = False
 doWeeklyUpdates = True
 doMonthlyUpdate = True
 doYearlyUpdates = True
 
-#External Directories
-syncFile = "" #Enter the full directory of where the syncFile is here, The sync file is a file with a list of directories to syncronize before backing up
-backupLocation = ""  #Enter the full directory of where backups will be kept
+# External Directories
+syncFile = r'' #Enter the full directory of where the syncFile is here, The sync file is a file with a list of directories to syncronize before backing up
+backupFile = r'' #Enter the full directory of where the backupFile is here, the backup file is where backups will be derived from and where (if enabled) the syncFile will backup to
+backupLocation = r''  #Enter the full directory of where backups will be kept
 
-#Number of Backups allowed per type
+# Number of Backups allowed per type
 allowedWeeklyBackups = 4        #Determines max ammount of Weekly Backups
 allowedMonthlyBackups = 6       #Determines max ammount of Monthly Backups
 allowedYearlyBackups = 99       #Determines max ammount of Yearly Backups
 
-#When backups occur
-dateOfWeekly = 0                                    #Defaults as 0, Options: (0-6)
-dateOfMonthly = 28                                  #Defaults as 28th, last day of all months(28), Options (1-28)
-dateOfYearly = [12, 28]                              #(Month(1-12), Day(1-28))
+# When backups occur
+dateOfWeekly = 0                #Defaults as 0, Options: (0-6)
+dateOfMonthly = 28              #Defaults as 28th, last day of all months(28), Options (1-28)
+dateOfYearly = [12, 28]         #(Month(1-12), Day(1-28))
 
 ###################################################################################################################################################
 #CONFIGURATION END 
+###################################################################################################################################################
+
+###################################################################################################################################################
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
+# WARNING: EVERYTHING BELOW THIS POINT IS THE UNDERLYING SYSTEM OF THE PROGRAM: MODIFICATION MAY BREAK THE PROGRAM
 ###################################################################################################################################################
 
 ###################################################################################################################################################
@@ -64,6 +78,9 @@ class prepSys:
         if not type(doDailySync) == bool:
             print("WARNING: Error detected in the configuration settings.\ndoDailySync must be a bool (True or False)\nCaps are important, make sure the value is capitalized\n")
             terminationFlag = True
+        if not type(doBackupFile) == bool:
+            print("WARNING: Error detected in the configuration settings.\doBackupFile must be a bool (True or False)\nCaps are important, make sure the value is capitalized\n")
+            terminationFlag = True
         if not type(doWeeklyUpdates) == bool:
             print("WARNING: Error detected in the configuration settings.\ndoWeeklyUpdates must be a bool (True or False)\nCaps are important, make sure the value is capitalized\n")
             terminationFlag = True
@@ -81,7 +98,11 @@ class prepSys:
         if not os.path.isfile(syncFile) and doDailySync:
             print("WARNING: Error detected in the configuration settings.\nsyncFile was unable to be opened, Please validate the path\n")
             terminationFlag = True
+        if not os.path.isfile(backupFile) and doBackupFile:
+            print("WARNING: Error detected in the configuration settings.\nbackupFile was unable to be opened, Please validate the path\n")
+            terminationFlag = True
 
+        #RANGE CHECKING
         if not 0 <= dateOfWeekly <= 6:
             print("WARNING: Error detected in the configuration settings.\ndateOfWeekly is not in a valid range, please set the variable between 0-6\n")
             terminationFlag = True
@@ -139,19 +160,6 @@ class backupSys:
                         os.mkdir(currSync)
                     print("Sycronizing " + currSync + "...")
                     dirsync.sync(line.strip('\n'), currSync, 'sync')
-    
-    #----------------------------------------------------------
-    #Function Purpouse: Delete old backups after max hit
-    #----------------------------------------------------------
-    def bacTrimmer(backupType, countedBak):
-        deletionFlag = False
-        if backupType == "Weekly" and countedBak >= allowedWeeklyBackups:
-            deletionFlag = True
-        if backupType == "Monthly" and countedBak >= allowedMonthlyBackups:
-            deletionFlag = True
-        if backupType == "Yearly" and countedBak >= allowedYearlyBackups:
-            deletionFlag = True   
-        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); os.rmdir(dirSorter[0])
 
     #----------------------------------------------------------
     #Function Purpouse: Dynamicly generate backups
@@ -167,23 +175,46 @@ class backupSys:
             os.mkdir(dateCode)
         os.chdir(dateCode)
         bakLoc = os.getcwd()
-        #TODO: BUG: Remove the requirment of the Sync Folder and make it a dynamic location of where to generate from
         os.chdir(backupLocation)
-        os.chdir("Sync")
-        syncLoc = os.getcwd()
-        for subdir, dirs, files in os.walk(syncLoc):                        #For each directory in the Sync folder,
-                for dir in dirs:                                            #Needed repeat to isolate directories
-                    os.chdir(dir)                                           #Change directory into the current Synced Folder
-                    addFile = os.getcwd()                                   #Sets up location of what to backup
-                    os.chdir(bakLoc)                                        #Change directory to the Backup Location
-                    tarName = backupCode + "-" + dir + ".tar.gz"            #Setup tarfile name
-                    print("Backing up " + dir + " to " + bakLoc + "...")    #Diagnostcis & Reporting
-                    newTar = tarfile.open(tarName,'w:gz')                   #Generate a new tarfile for the 
-                    newTar.add(addFile)                                     #Add files to the archive
-                    print(dir + " has been sucsessfully backed up.")        #Diagnostcis & Reporting
-                    newTar.close()                                          #Close the archive
-                    os.chdir(syncLoc)  
-    
+        #TODO: BUG: Remove the requirment of the Sync Folder and make it a dynamic location of where to generate from
+        bakList = []
+        if doBackupFile:
+            backupProcceser = open(backupFile)
+            backupProcceserData = backupProcceser.readlines()
+            for each in backupProcceserData:
+                bakList.append(each)
+            backupProcceser.close()
+        if doDailySync:
+            bakList.append("Sync")
+        for each in bakList:
+            os.chdir(each)
+            syncLoc = os.getcwd()
+            for subdir, dirs, files in os.walk(syncLoc):                        #For each directory in the Sync folder,
+                    for dir in dirs:                                            #Needed repeat to isolate directories
+                        os.chdir(dir)                                           #Change directory into the current Synced Folder
+                        addFile = os.getcwd()                                   #Sets up location of what to backup
+                        os.chdir(bakLoc)                                        #Change directory to the Backup Location
+                        tarName = backupCode + "-" + dir + ".tar.gz"            #Setup tarfile name
+                        print("Backing up " + dir + " to " + bakLoc + "...")    #Diagnostcis & Reporting
+                        newTar = tarfile.open(tarName,'w:gz')                   #Generate a new tarfile for the 
+                        newTar.add(addFile)                                     #Add files to the archive
+                        print(dir + " has been sucsessfully backed up.")        #Diagnostcis & Reporting
+                        newTar.close()                                          #Close the archive
+                        os.chdir(syncLoc)  
+
+    #----------------------------------------------------------
+    #Function Purpouse: Delete old backups after max hit
+    #----------------------------------------------------------
+    def bacTrimmer(backupType, countedBak):
+        deletionFlag = False
+        if backupType == "Weekly" and countedBak >= allowedWeeklyBackups:
+            deletionFlag = True
+        if backupType == "Monthly" and countedBak >= allowedMonthlyBackups:
+            deletionFlag = True
+        if backupType == "Yearly" and countedBak >= allowedYearlyBackups:
+            deletionFlag = True   
+        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); os.rmdir(dirSorter[0])
+
 #####################################################################
 #ENTRY POINT
 #####################################################################
