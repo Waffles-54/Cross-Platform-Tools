@@ -1,18 +1,25 @@
-# Backup Manager (Pull Test)
+# Backup Manager
 A system designed to automate backups while being flexible and availible on all platforms
 
 ## Table of contents
 * [General Info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
+* [Installing](#installing)
+* [Configuration](#configuration)
+* [Automation](#automation)
+* [Project Status](#project-status)
 
 ## General Info
-This project serves as a backup managment system with configurable settings to fine tune how you want your backups done
 
 ## Technologies
-Python3 V:3.10.2,
-dirsync,
-tarfile
+Python3
+datetime
+dirsync
 
 ## Setup
-W.I.P
+### Installing
+### Configuration
+### Automation
+
+## Project Status
