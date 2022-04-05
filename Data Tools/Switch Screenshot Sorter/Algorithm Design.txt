@@ -1,0 +1,34 @@
+>Nintendo root folder
+    >Year (YYYY)
+        >Month (1-12)
+            >Date(1-31)
+                PNG{(YYYY MM DD HR MN SC 00)-[IDENTIFIER]}
+                Tokens: 
+                    1(Datecode). (YYYY MM DD HR MN SC 00)
+                    2(Games Code). [IDENTIFIER]
+                    3(Files full location)
+
+#Algorithim
+Get the directory location of the nintendo screenshots folder from the user
+Validate the location, re-enter location if applicable
+Generate a new folder where the program is run from for the sorted data (Sorted Screenshots)
+
+Cycle through the folders looking for files, for each file, do the following:
+    1. Tokenize the filename (Break the token with the - character)
+        >Datecode
+        >IDENTIFIER
+	>Path
+    2. Add the full filepath of the image to the data structure
+    3. Check if a folder for the IDENTIFIER exists in the Sorted Screenshots folder
+        If no,
+            Generate the folder based on the IDENTIFIER
+        Move the file to the IDENTIFIER's folder
+
+#Functional breakdown
+>(Main)
+>User Input Function
+>Input Validation
+>(M) Generation of orginized folder (Placed with other screenshots at ~)
+
+Loop all files, for each:
+    >Sort via Algorithim (in another function)

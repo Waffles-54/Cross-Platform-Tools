@@ -176,7 +176,6 @@ class backupSys:
         os.chdir(dateCode)
         bakLoc = os.getcwd()
         os.chdir(backupLocation)
-        #TODO: BUG: Remove the requirment of the Sync Folder and make it a dynamic location of where to generate from
         bakList = []
         if doBackupFile:
             backupProcceser = open(backupFile)
