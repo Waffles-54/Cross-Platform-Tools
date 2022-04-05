@@ -16,7 +16,6 @@ This project serves as a backup management system with configurable settings to 
 
 ## Setup
 ### Downloading
-#### CLI
 - cd directory_of_install
 - git clone https://github.com/WaffleGod54/Cross-Platform-Tools
 ### Configuration
@@ -43,8 +42,7 @@ I reccomend using the nano editor:
 - cd BackupManager
 - nano BackupManager.py
 Edit the configuration to make the system opperate how you like
-### Automation
-#### Linux
+### Automation (Linux)
 - crontab -e
 - 30 * * * * /directory/of/BackupManager.py
 - Ctrl + O
