@@ -66,6 +66,7 @@ class prepSys:
     def preReq():
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'datetime'])
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'dirsync'])
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'shutil'])
 
     #----------------------------------------------------------
     #Function Purpouse: Checks that configuration is good
@@ -212,7 +213,9 @@ class backupSys:
             deletionFlag = True
         if backupType == "Yearly" and countedBak >= allowedYearlyBackups:
             deletionFlag = True   
-        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); os.rmdir(dirSorter[0])
+        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); 
+        shutil.rmtree(dirSorter[0])
+        # os.rmdir(dirSorter[0])
 
 #####################################################################
 #ENTRY POINT
@@ -221,7 +224,7 @@ class backupSys:
 #Prep Phase
 prepSys.preReq()
 prepSys.ConfCheck()
-import tarfile, datetime, dirsync
+import tarfile, datetime, dirsync, shutil
 timeNow = datetime.datetime.today()
 
 #Program Phase

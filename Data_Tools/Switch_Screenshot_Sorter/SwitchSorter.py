@@ -10,57 +10,34 @@
 ###################################################################################################################################################
 #PROGRAM START
 ###################################################################################################################################################
-
-class dataInit:
-    #----------------------------------------------------------
-    #Function Purpouse: Gets and validates the location of the switches screenshots from the user
-    #----------------------------------------------------------
-    def getSwitchScreenies():
-        validPath = False
-        pathGiven = ''
-
-        while(not validPath):
-            print("Please enter the full directory of where your Nintendo Screenshots are located: ")
-            pathGiven = input()
-            validPath = os.path.exists(pathGiven)
-
-        return pathGiven
-
-    def initOrginizedStructure(pathGiven):
-        os.chdir(pathGiven)
-        if not os.path.exists("Sorted Screenshots"):
-            print("Generating Sorted Screenshots folder at " + pathGiven)
-            os.mkdir("Sorted Screenshots")
-        
-        os.chdir("Sorted Screenshots")
-        return os.getcwd()
-
-
-#####################################################################
-#ENTRY POINT
-#####################################################################
-
 import os, shutil
 
-ScreeniesLocale = dataInit.getSwitchScreenies()
-OrginizedScreenies = dataInit.initOrginizedStructure(ScreeniesLocale)
-
-for root, directories, files in os.walk(ScreeniesLocale):
+currentDir = os.path.join(os.getcwd(), "Album")
+if not os.path.isdir(currentDir):
+    print("The Album folder was not detected, place this program in the Nintendo root folder")
+    exit()
+if not os.path.exists("Sorted Screenshots"):
+            print("Generating Sorted Screenshots folder...")
+            os.mkdir("Sorted Screenshots")   
+os.chdir("Sorted Screenshots")
+sortedData = os.getcwd()
+for root, directories, files in os.walk(currentDir):
 	for data in files:
             #ID Proccessing
             gameID = data.split('-')
             gameID = gameID[1].split('.')
             gameID = gameID[0]
 
-            os.chdir(OrginizedScreenies)
+            os.chdir(sortedData)
             if not os.path.exists(gameID):
                 os.mkdir(gameID)
             originalFile = os.path.join(root, data)
-            newFile = os.path.join(OrginizedScreenies, gameID, data)
+            newFile = os.path.join(os.getcwd(), gameID, data)
             shutil.move(originalFile, newFile)
 
+shutil.rmtree(currentDir)
 print("Screenshots have been orginized.")
 
-##########################################################################################################################
+###################################################################################################################################################
 #PROGRAM END
 ###################################################################################################################################################
