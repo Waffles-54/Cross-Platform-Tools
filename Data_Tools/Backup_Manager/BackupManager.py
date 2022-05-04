@@ -225,18 +225,21 @@ class backupSys:
 prepSys.preReq()
 prepSys.ConfCheck()
 import tarfile, datetime, dirsync, shutil
-timeNow = datetime.datetime.today()
 
+timeNow = datetime.datetime.today()
+WeeklyTimeCode = timeNow.strftime("%m-%d")
+monthlyTimeCode = timeNow.strftime("%Y-%m")
+yearlyTimeCode = timeNow.strftime("%m-%d")
 #Program Phase
 prepSys.argParser()
 if doDailySync:
     backupSys.syncSys()
 if doWeeklyUpdates and timeNow.weekday() == dateOfWeekly:
-    backupSys.bakGen("Weekly", timeNow.strftime("%m-%d"), "W")
+    backupSys.bakGen("Weekly", WeeklyTimeCode, "W")
 if doMonthlyUpdate and timeNow.day == dateOfMonthly:
-    backupSys.bakGen("Monthly", timeNow.strftime("%Y-%m"), "M")
+    backupSys.bakGen("Monthly", monthlyTimeCode, "M")
 if doYearlyUpdates and dateOfYearly == timeNow.strftime("%m-%d"):
-    backupSys.bakGen("Yearly", timeNow.strftime("%m-%d"), "Y")
+    backupSys.bakGen("Yearly", yearlyTimeCode, "Y")
 
 ###################################################################################################################################################
 #PROGRAM END
