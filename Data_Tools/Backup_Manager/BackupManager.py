@@ -1,20 +1,20 @@
 ###################################################################################################################################################
-#Written By Keegan A Clark, Western Washington University
-#Initial Commit: 2021.11.25
-#This program is licensed under the GNU General Public License v3.0: https://www.gnu.org/licenses/gpl-3.0.en.html
-#This program is not under any form of warranty
-#Purpouse Statement:
-#This program is designed to be the configurable program for backing up systems on any platform
+# Written By Keegan A Clark, Western Washington University
+# Initial Commit: 2021.11.25, Last Update: 2023.06.19
+# This program is licensed under the GNU General Public License v3.0: https://www.gnu.org/licenses/gpl-3.0.en.html
+# This program is not under any form of warranty
+# Purpouse Statement:
+# This program is designed to be the configurable program for backing up systems on any platform
 ###################################################################################################################################################
 
 #!/usr/bin/python
-import os, sys, subprocess
+import os, sys, subprocess, shutil
 
 ###################################################################################################################################################
 #CONFIGURATION START
 ###################################################################################################################################################
 
-doDailySync = True
+doDailySync = False
 doBackupFile = False
 doWeeklyUpdates = True
 doMonthlyUpdate = True
@@ -36,7 +36,7 @@ dateOfMonthly = 28              #Defaults as 28th, last day of all months(28), O
 dateOfYearly = [12, 28]         #(Month(1-12), Day(1-28))
 
 ###################################################################################################################################################
-#CONFIGURATION END 
+#CONFIGURATION END
 ###################################################################################################################################################
 
 ###################################################################################################################################################
@@ -52,30 +52,29 @@ dateOfYearly = [12, 28]         #(Month(1-12), Day(1-28))
 ###################################################################################################################################################
 
 ###################################################################################################################################################
-#PROGRAM START
+# PROGRAM START
 ###################################################################################################################################################
 
 #####################################################################
-#Class Purpouse: Preparing the program to opperate
+# Class Purpouse: Preparing the program to opperate
 #####################################################################
 
 class prepSys:
     #----------------------------------------------------------
-    #Function Purpouse: Checks for required package installs
+    # Function Purpouse: Checks for required package installs
     #----------------------------------------------------------
     def preReq():
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'datetime'])
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'dirsync'])
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'shutil'])
-
+        #subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'shutil'])
     #----------------------------------------------------------
-    #Function Purpouse: Checks that configuration is good
+    # Function Purpouse: Checks that configuration is good
     #----------------------------------------------------------
     def ConfCheck():
         terminationFlag = False
         listID = 0
 
-        #BOOL CHECKING PHASE
+        # BOOL CHECKING PHASE
         if not type(doDailySync) == bool:
             print("WARNING: Error detected in the configuration settings.\ndoDailySync must be a bool (True or False)\nCaps are important, make sure the value is capitalized\n")
             terminationFlag = True
@@ -92,7 +91,7 @@ class prepSys:
             print("WARNING: Error detected in the configuration settings.\ndoYearlyUpdates must be a bool (True or False)\nCaps are important, make sure the value is capitalized\n")
             terminationFlag = True
 
-        #PATH & FILE CHECKING PHASE
+        # PATH & FILE CHECKING PHASE
         if not os.path.exists(backupLocation):
             print("WARNING: Error detected in the configuration settings.\nbackupLocation was unable to be located, Please validate the path\n")
             terminationFlag = True
@@ -103,7 +102,7 @@ class prepSys:
             print("WARNING: Error detected in the configuration settings.\nbackupFile was unable to be opened, Please validate the path\n")
             terminationFlag = True
 
-        #RANGE CHECKING
+        # RANGE CHECKING
         if not 0 <= dateOfWeekly <= 6:
             print("WARNING: Error detected in the configuration settings.\ndateOfWeekly is not in a valid range, please set the variable between 0-6\n")
             terminationFlag = True
@@ -125,7 +124,7 @@ class prepSys:
         if terminationFlag: exit()
 
     #----------------------------------------------------------
-    #Function Purpouse: Parses arguments passed from CLI
+    # Function Purpouse: Parses arguments passed from CLI
     #----------------------------------------------------------
     def argParser():
         for arg in sys.argv:
@@ -139,12 +138,12 @@ class prepSys:
             if arg == "-m":
                 print("#TODO, manual page")
 
-#####################################################################
-#Class Purpouse: Program functionality
+7#####################################################################
+# Class Purpouse: Program functionality
 #####################################################################
 class backupSys:
     #----------------------------------------------------------
-    #Function Purpouse: Syncronize the backup system
+    # Function Purpouse: Syncronize the backup system
     #----------------------------------------------------------
     def syncSys():
         os.chdir(backupLocation)
@@ -163,7 +162,7 @@ class backupSys:
                     dirsync.sync(line.strip('\n'), currSync, 'sync')
 
     #----------------------------------------------------------
-    #Function Purpouse: Dynamicly generate backups
+    # Function Purpouse: Dynamicly generate backups
     #----------------------------------------------------------
     def bakGen(backupType, dateCode, backupCode):
         os.chdir(backupLocation)
@@ -189,22 +188,35 @@ class backupSys:
         for each in bakList:
             os.chdir(each)
             syncLoc = os.getcwd()
-            for subdir, dirs, files in os.walk(syncLoc):                        #For each directory in the Sync folder,
-                    for dir in dirs:                                            #Needed repeat to isolate directories
-                        os.chdir(dir)                                           #Change directory into the current Synced Folder
-                        addFile = os.getcwd()                                   #Sets up location of what to backup
-                        os.chdir(bakLoc)                                        #Change directory to the Backup Location
-                        tarName = backupCode + "-" + dir + ".tar.gz"            #Setup tarfile name
-                        print("Backing up " + dir + " to " + bakLoc + "...")    #Diagnostcis & Reporting
-                        newTar = tarfile.open(tarName,'w:gz')                   #Generate a new tarfile for the 
-                        newTar.add(addFile)                                     #Add files to the archive
-                        print(dir + " has been sucsessfully backed up.")        #Diagnostcis & Reporting
-                        newTar.close()                                          #Close the archive
-                        os.chdir(syncLoc)  
+            for subdir, dirs, files in os.walk(syncLoc):                        # For each directory in the Sync folder,
+                    for dir in dirs:                                            # Needed repeat to isolate directories
+                        os.chdir(dir)                                           # Change directory into the current Synced Folder
+                        addFile = os.getcwd()                                   # Sets up location of what to backup
+                        os.chdir(bakLoc)                                        # Change directory to the Backup Location
+                        tarName = backupCode + "-" + dir + ".tar.gz"            # Setup tarfile name
+                        print("Backing up " + dir + " to " + bakLoc + "...")    # Diagnostcis & Reporting
+                        newTar = tarfile.open(tarName,'w:gz')                   # Generate a new tarfile for the
+                        newTar.add(addFile)                                     # Add files to the archive
+                        print(dir + " has been sucsessfully backed up.")        # Diagnostcis & Reporting
+                        newTar.close()                                          # Close the archive
+                        os.chdir(syncLoc)
 
     #----------------------------------------------------------
-    #Function Purpouse: Delete old backups after max hit
+    # Function Purpouse: Delete old backups after max hit
     #----------------------------------------------------------
+    def get_oldest_folder(directory):
+        # Get all the directories in the specified directory
+        directories = [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))]
+
+        # Sort the directories by their modification time
+        sorted_directories = sorted(directories, key=lambda x: os.path.getmtime(os.path.join(directory, x)))
+
+        # Return the oldest folder
+        if sorted_directories:
+            return sorted_directories[0]
+        else:
+            return None
+
     def bacTrimmer(backupType, countedBak):
         deletionFlag = False
         if backupType == "Weekly" and countedBak >= allowedWeeklyBackups:
@@ -212,35 +224,40 @@ class backupSys:
         if backupType == "Monthly" and countedBak >= allowedMonthlyBackups:
             deletionFlag = True
         if backupType == "Yearly" and countedBak >= allowedYearlyBackups:
-            deletionFlag = True   
-        if deletionFlag: dirSorter = sorted(os.listdir(os.curdir)); 
-        shutil.rmtree(dirSorter[0])
-        # os.rmdir(dirSorter[0])
+            deletionFlag = True
+        if deletionFlag == True:
+            directory = os.path.join(backupLocation, backupType, "")
+            #print(dir_path)
+            # Get all the directories in the specified directory
+            directories = [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))]
 
+            # Sort the directories by their modification time
+            sorted_directories = sorted(directories, key=lambda x: os.path.getmtime(os.path.join(directory, x)))
+
+            # Return the oldest folder
+            oldest_folder = sorted_directories[0]
+            shutil.rmtree(oldest_folder)
 #####################################################################
-#ENTRY POINT
+# ENTRY POINT
 #####################################################################
 
-#Prep Phase
+# Prep Phase
 prepSys.preReq()
 prepSys.ConfCheck()
-import tarfile, datetime, dirsync, shutil
-
+import tarfile, datetime, dirsync
 timeNow = datetime.datetime.today()
-WeeklyTimeCode = timeNow.strftime("%m-%d")
-monthlyTimeCode = timeNow.strftime("%Y-%m")
-yearlyTimeCode = timeNow.strftime("%m-%d")
-#Program Phase
+
+# Program Phase
 prepSys.argParser()
 if doDailySync:
     backupSys.syncSys()
 if doWeeklyUpdates and timeNow.weekday() == dateOfWeekly:
-    backupSys.bakGen("Weekly", WeeklyTimeCode, "W")
+    backupSys.bakGen("Weekly", timeNow.strftime("%m-%d"), "W")
 if doMonthlyUpdate and timeNow.day == dateOfMonthly:
-    backupSys.bakGen("Monthly", monthlyTimeCode, "M")
+    backupSys.bakGen("Monthly", timeNow.strftime("%Y-%m"), "M")
 if doYearlyUpdates and dateOfYearly == timeNow.strftime("%m-%d"):
-    backupSys.bakGen("Yearly", yearlyTimeCode, "Y")
+    backupSys.bakGen("Yearly", timeNow.strftime("%m-%d"), "Y")
 
 ###################################################################################################################################################
-#PROGRAM END
+# PROGRAM END
 ###################################################################################################################################################
