@@ -1,5 +1,5 @@
 ###################################################################################################################################################
-#Written By Keegan A Clark, Washington State University
+#Written By Alice Griffith, Washington State University
 #Initial Commit: 
 #This program is licensed under the GNU General Public License v3.0: https://www.gnu.org/licenses/gpl-3.0.en.html
 #This program is not under any form of warranty
